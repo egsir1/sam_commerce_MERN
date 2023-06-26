@@ -52,6 +52,7 @@ const getAllUser = asyncHandler(async (req, res) => {
 //Get a single user
 
 const getOneUser = asyncHandler(async (req, res) => {
+  console.log("user/ctrl/getOneUser");
   console.log("req-params:", req.params);
   const { id } = req.params;
 

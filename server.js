@@ -7,15 +7,19 @@ const mongoose = require("mongoose");
 const dbConnect = require("./config/dbConnect");
 const { notFound, errorHandler } = require("./middlewares/errorHandler");
 const cookieParser = require("cookie-parser");
+const productRouter = require("./routes/productRoute");
+const morgan = require("morgan");
 
 mongoose.set("strictQuery", false);
 dbConnect();
 
+app.use(morgan());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.use("/api/user", authRouter);
+app.use("/api/product", productRouter);
 
 app.use(notFound);
 app.use(errorHandler);

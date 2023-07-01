@@ -6,11 +6,14 @@ const authRouter = require("./routes/authRoute");
 const mongoose = require("mongoose");
 const dbConnect = require("./config/dbConnect");
 const { notFound, errorHandler } = require("./middlewares/errorHandler");
+const cookieParser = require("cookie-parser");
+
 mongoose.set("strictQuery", false);
 dbConnect();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 app.use("/api/user", authRouter);
 

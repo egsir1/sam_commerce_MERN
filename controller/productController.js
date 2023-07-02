@@ -32,11 +32,43 @@ const getProduct = asyncHandler(async (req, res) => {
 //get all products
 const getAllProducts = asyncHandler(async (req, res) => {
   console.log("getAllProducts/productController");
+  // console.log(req.query);
   try {
-    const allProducts = await Product.find();
-    res.json(allProducts);
+    //filtering logic
+    const queryObj = { ...req.query };
+    const excludeFields = ["page", "sort", "limit", "fields"];
+    excludeFields.forEach((el) => delete queryObj[el]);
+    // console.log("query-obj:", queryObj, req.query);
+    let queryString = JSON.stringify(queryObj);
+    queryString = queryString.replace(
+      /\b(gte|gt|lte)\b/g,
+      (match) => `$${match}`
+    );
+    // console.log(JSON.parse(queryString));
+    let query = Product.find(JSON.parse(queryString));
+
+    //Sorting
+
+    if (req.query.sort) {
+      const sortBy = req.query.sort.split(",").join(" ");
+      query = query.sort(sortBy);
+    } else {
+      query = query.sort("-createAt");
+    }
+
+    //Limiting the fields
+
+    if (req.query.fields) {
+      const fields = req.query.fields.split(",").join(" ");
+      query = query.select(fields);
+    } else {
+      query = query.select("-__v");
+    }
+    const product = await query;
+
+    res.json(product);
   } catch (error) {
-    throw new Error();
+    throw new Error(error);
   }
 });
 
@@ -58,4 +90,27 @@ const updateProduct = asyncHandler(async (req, res) => {
     throw new Error(error);
   }
 });
-module.exports = { createProduct, getProduct, getAllProducts, updateProduct };
+
+//delete product
+
+const deleteProduct = asyncHandler(async (req, res) => {
+  console.log("deleteProduct/productController");
+  const { id } = req.params;
+  console.log("id::", id);
+  try {
+    if (req.body.title) {
+      req.body.slug = slugify(req.body.title);
+    }
+    const updatedItem = await Product.findOneAndDelete({ _id: id });
+    res.json(updatedItem);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+module.exports = {
+  createProduct,
+  getProduct,
+  getAllProducts,
+  updateProduct,
+  deleteProduct,
+};

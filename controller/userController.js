@@ -215,6 +215,33 @@ const logout = asyncHandler(async (req, res) => {
   res.sendStatus(204); // forbidden
 });
 
+//updatePassword
+
+const updatePassword = asyncHandler(async (req, res) => {
+  console.log("updatePassword/userCtrl");
+  try {
+    console.log("req.user:", req.user);
+    console.log("req.body:", req.body);
+    const { _id } = req.user;
+    const { password } = req.body;
+    console.log("password:", password);
+    console.log("id:", _id);
+
+    // validateMongoDbId(_id);
+    const user = await User.findById(_id);
+    console.log("user:", user);
+    if (password) {
+      user.password = password;
+      const updatedPassword = await user.save();
+      res.json(updatedPassword);
+    } else {
+      res.json(user);
+    }
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
 module.exports = {
   createUser,
   loginUserController,
@@ -226,4 +253,5 @@ module.exports = {
   unblockUser,
   handleRefreshToken,
   logout,
+  updatePassword,
 };

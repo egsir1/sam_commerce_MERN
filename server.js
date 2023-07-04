@@ -9,6 +9,7 @@ const { notFound, errorHandler } = require("./middlewares/errorHandler");
 const cookieParser = require("cookie-parser");
 const productRouter = require("./routes/productRoute");
 const morgan = require("morgan");
+const blogRouter = require("./routes/blogRoute");
 
 mongoose.set("strictQuery", false);
 dbConnect();
@@ -20,6 +21,7 @@ app.use(cookieParser());
 
 app.use("/api/user", authRouter);
 app.use("/api/product", productRouter);
+app.use("/api/blog", blogRouter); // Blog Route added here
 
 app.use(notFound);
 app.use(errorHandler);

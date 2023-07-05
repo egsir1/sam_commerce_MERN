@@ -10,6 +10,8 @@ const cookieParser = require("cookie-parser");
 const productRouter = require("./routes/productRoute");
 const morgan = require("morgan");
 const blogRouter = require("./routes/blogRoute");
+const categoryRouter = require("./routes/prodCategoryRoute");
+const blogCatRouter = require("./routes/blogCategoryRoute");
 
 mongoose.set("strictQuery", false);
 dbConnect();
@@ -21,7 +23,9 @@ app.use(cookieParser());
 
 app.use("/api/user", authRouter);
 app.use("/api/product", productRouter);
-app.use("/api/blog", blogRouter); // Blog Route added here
+app.use("/api/blog", blogRouter);
+app.use("/api/category", categoryRouter);
+app.use("/api/blog-category", blogCatRouter);
 
 app.use(notFound);
 app.use(errorHandler);

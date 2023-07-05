@@ -36,7 +36,7 @@ const getSingleBlog = asyncHandler(async (req, res) => {
   console.log("getSingleBlog/blogController");
   const { id } = req.params;
   try {
-    const blog = await Blog.findById(id);
+    const blog = await Blog.findById(id).populate("likes").populate("dislikes");
     const updateViews = await Blog.findByIdAndUpdate(
       id,
       { $inc: { numViews: 1 } },
@@ -91,18 +91,21 @@ const likeBlog = asyncHandler(async (req, res) => {
 
     //Find the blog which you want to be liked
     const blog = await Blog.findById(blogId);
+    console.log("blog:", blog);
 
     //find the login user
     console.log("req-user:", req.user);
-    const loginUserId = req?.user?.isLiked;
-    console.log("loginUserId:", loginUserId);
+    const loginUserId = req?.user?._id;
+    console.log("loginUserId:", loginUserId.toString());
 
     //find if the user has liked the blog
     const isLiked = blog?.isLiked;
+    console.log("isliked:", isLiked);
     // find if the user has disliked the blog
     const alreadyDisliked = blog?.dislikes?.find(
       (userId) => userId.toString() === loginUserId?.toString()
     );
+    console.log("already-dislike:", alreadyDisliked);
 
     if (alreadyDisliked) {
       const blog = await Blog.findByIdAndUpdate(
@@ -129,7 +132,7 @@ const likeBlog = asyncHandler(async (req, res) => {
       const blog = await Blog.findByIdAndUpdate(
         blogId,
         {
-          $pull: { likes: loginUserId },
+          $push: { likes: loginUserId },
           isLiked: true,
         },
         { new: true }
@@ -156,7 +159,7 @@ const dislikeBlog = asyncHandler(async (req, res) => {
 
     //find the login user
     console.log("req-user:", req.user);
-    const loginUserId = req?.user?.isLiked;
+    const loginUserId = req?.user?._id;
     console.log("loginUserId:", loginUserId);
 
     //find if the user has liked the blog
@@ -191,7 +194,7 @@ const dislikeBlog = asyncHandler(async (req, res) => {
       const blog = await Blog.findByIdAndUpdate(
         blogId,
         {
-          $pull: { dislikes: loginUserId },
+          $push: { dislikes: loginUserId },
           isDisliked: true,
         },
         { new: true }

@@ -8,11 +8,24 @@ const {
   deleteBlog,
   likeBlog,
   dislikeBlog,
+  uploadImages,
 } = require("../controller/blogController");
+const {
+  productImgResize,
+  uploadPhoto,
+} = require("../middlewares/uploadImages");
 const router = express.Router();
 
 router.post("/", authMiddleware, isAdmin, createBlog);
 router.put("/likes", authMiddleware, likeBlog);
+router.put(
+  "/upload/:id",
+  authMiddleware,
+  isAdmin,
+  uploadPhoto.array("images", 10),
+  productImgResize,
+  uploadImages
+);
 router.put("/dislikes", authMiddleware, dislikeBlog);
 router.put("/:id", authMiddleware, isAdmin, updateBlog);
 router.get("/:id", getSingleBlog);

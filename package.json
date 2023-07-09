@@ -27,5 +27,8 @@
     "nodemon": "^2.0.22",
     "sharp": "^0.31.2",
     "slugify": "^1.6.5"
+  },
+  "devDependencies": {
+    "@types/sharp": "^0.32.0"
   }
 }

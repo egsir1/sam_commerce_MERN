@@ -40,15 +40,16 @@ var BlogSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
-    images: {
-      type: String,
-      default:
-        "https://www.engineeringtrainer.com/web/image/204900/dreamstime_xl_110423482.jpg",
-    },
+    // images: {
+    //   type: String,
+    //   default:
+    //     "https://www.engineeringtrainer.com/web/image/204900/dreamstime_xl_110423482.jpg",
+    // },
     author: {
       type: String,
       default: "Admin",
     },
+    images: [],
   },
   {
     toJSON: {

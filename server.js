@@ -12,6 +12,7 @@ const morgan = require("morgan");
 const blogRouter = require("./routes/blogRoute");
 const categoryRouter = require("./routes/prodCategoryRoute");
 const blogCatRouter = require("./routes/blogCategoryRoute");
+const brandRouter = require("./routes/brandRoute");
 
 mongoose.set("strictQuery", false);
 dbConnect();
@@ -26,6 +27,7 @@ app.use("/api/product", productRouter);
 app.use("/api/blog", blogRouter);
 app.use("/api/category", categoryRouter);
 app.use("/api/blog-category", blogCatRouter);
+app.use("/api/brand", brandRouter);
 
 app.use(notFound);
 app.use(errorHandler);

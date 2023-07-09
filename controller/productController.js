@@ -1,6 +1,7 @@
 const Product = require("../models/Product_module");
 const asyncHandler = require("express-async-handler");
 const slugify = require("slugify");
+const User_module = require("../models/User_module");
 
 //create a product
 const createProduct = asyncHandler(async (req, res) => {
@@ -119,10 +120,119 @@ const deleteProduct = asyncHandler(async (req, res) => {
     throw new Error(error);
   }
 });
+
+//Add to wishlist => continuing
+
+const addToWishlist = asyncHandler(async (req, res) => {
+  console.log("addTowishlist/prodController");
+  const { _id } = req.user;
+  const { prodId } = req.body;
+
+  console.log("req.user.id:", _id);
+  console.log("prodId:", req.body);
+  try {
+    const user = await User_module.findById(_id);
+    console.log("userWishlist:::", user.wishlist);
+    const alreadyAdded = user.wishlist.find((id) => id.toString() == prodId);
+    console.log("already:", alreadyAdded);
+    if (alreadyAdded) {
+      console.log("hey1");
+      let user = await User_module.findByIdAndUpdate(
+        _id,
+        { $pull: { wishlist: prodId } },
+        { new: true }
+      );
+      res.json(user);
+    } else {
+      console.log("hey2");
+      const userid = await User_module.findByIdAndUpdate(_id);
+      console.log("userid::", userid);
+      let user = await User_module.findByIdAndUpdate(
+        _id,
+        {
+          $push: { wishlist: prodId },
+        },
+        { new: true }
+      );
+      res.json(user);
+    }
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+// rating
+
+const rating = asyncHandler(async (req, res) => {
+  console.log("rating/productController");
+
+  const { _id } = req.user;
+  const { star, prodId, comment } = req.body;
+  try {
+    const product = await Product.findById(prodId);
+    let alreadyRated = product.ratings.find(
+      (userId) => userId.postedby.toString() === _id.toString()
+    );
+    if (alreadyRated) {
+      const updateRating = await Product.updateOne(
+        {
+          ratings: { $elemMatch: alreadyRated },
+        },
+        {
+          $set: { "ratings.$.star": star, "ratings.$.comment": comment },
+        },
+        {
+          new: true,
+        }
+      );
+      // res.json(updateRating);
+    } else {
+      const rateProduct = await Product.findByIdAndUpdate(
+        prodId,
+        {
+          $push: {
+            ratings: {
+              star: star,
+              comment: comment,
+              postedby: _id,
+            },
+          },
+        },
+        {
+          new: true,
+        }
+      );
+      // res.json(rateProduct);
+    }
+    // get all ratings
+
+    const getAllRatings = await Product.findById(prodId);
+    let totalRating = getAllRatings.ratings.length;
+    let ratingSum = getAllRatings.ratings
+      .map((item) => item.star)
+      .reduce((prev, curr) => prev + curr, 0);
+
+    let actualRating = Math.round(ratingSum / totalRating);
+    let finalProduct = await Product.findByIdAndUpdate(
+      prodId,
+      {
+        totalrating: actualRating,
+      },
+      {
+        new: true,
+      }
+    );
+    res.json(finalProduct);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
 module.exports = {
   createProduct,
   getProduct,
   getAllProducts,
   updateProduct,
   deleteProduct,
+  addToWishlist,
+  rating,
 };

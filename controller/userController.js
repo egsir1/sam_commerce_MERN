@@ -5,6 +5,7 @@ const validateMongoDbId = require("../utils/validateMongodbId");
 const { generateRefreshToken } = require("../config/refreshToken");
 const jwt = require("jsonwebtoken");
 const sendEmail = require("./emailController");
+const { find } = require("../models/blogModel");
 
 //Register a new user
 const createUser = asyncHandler(async (req, res) => {
@@ -20,7 +21,7 @@ const createUser = asyncHandler(async (req, res) => {
   }
 });
 
-//login
+//login a user
 const loginUserController = asyncHandler(async (req, res) => {
   console.log("loginUser/userController");
   const { email, password } = req.body;
@@ -52,6 +53,45 @@ const loginUserController = asyncHandler(async (req, res) => {
       email: findUser.email,
       mobile: findUser.mobile,
       token: generateToken(findUser._id),
+    });
+  } else {
+    throw new Error("Invalid Credentials!");
+  }
+});
+
+//login admin
+const loginAdminController = asyncHandler(async (req, res) => {
+  console.log("loginUser/userController");
+  const { email, password } = req.body;
+  console.log(req.body);
+  console.log(email, password);
+  //check if user exists or not
+
+  const findAdmin = await User.findOne({ email });
+  if (findAdmin.role !== "admin") throw new Error("User Not Authorised");
+  if (findAdmin && (await findAdmin.isPasswordMatched(password))) {
+    const refreshToken = await generateRefreshToken(findAdmin?._id);
+    // console.log("refresh-token-1", refreshToken);
+    const updatedUser = await User.findByIdAndUpdate(
+      findAdmin.id,
+      { refreshToken: refreshToken },
+      { new: true }
+    );
+    // console.log("res-cookie-1", res.cookie);
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+    // console.log("res-cookie-2", res.cookie);
+    // console.log("refresh-token-2", refreshToken);
+
+    res.json({
+      _id: findAdmin._id,
+      firstname: findAdmin.firstname,
+      lastname: findAdmin.lastname,
+      email: findAdmin.email,
+      mobile: findAdmin.mobile,
+      token: generateToken(findAdmin._id),
     });
   } else {
     throw new Error("Invalid Credentials!");
@@ -271,6 +311,39 @@ const forgotPasswordToken = asyncHandler(async (req, res) => {
   }
 });
 
+//get wishlist
+
+const getWishlist = asyncHandler(async (req, res) => {
+  console.log("getWishlist/userController");
+
+  const { _id } = req.user;
+  try {
+    const findUser = await User.findById(_id).populate("wishlist");
+
+    res.json(findUser);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+//save user Address
+
+const saveAddress = asyncHandler(async (req, res, next) => {
+  console.log("saveAddress/ userController");
+  const { _id } = req.user;
+
+  try {
+    const updatedUser = await User.findByIdAndUpdate(
+      _id,
+      { address: req?.body?.address },
+      { new: true }
+    );
+    res.json(updatedUser);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
 module.exports = {
   createUser,
   loginUserController,
@@ -284,4 +357,7 @@ module.exports = {
   logout,
   updatePassword,
   forgotPasswordToken,
+  loginAdminController,
+  getWishlist,
+  saveAddress,
 };
